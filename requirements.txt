@@ -1,0 +1,5 @@
+numpy
+hmmlearn
+scikit-learn
+joblib
+matplotlib
