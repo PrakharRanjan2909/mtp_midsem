@@ -19,8 +19,13 @@ def rank_hmms(hmms, sequences):
     
     # Rank HMMs by average log-likelihood
     ranked_indices = np.argsort(scores)[::-1]  # Sort in descending order
+    print(scores)
+    print(f"Ranked HMMs: {ranked_indices}")
     ranked_hmms = [hmms[i] for i in ranked_indices[:3]]  # Top 3 HMMs
+    
     ranked_scores = [scores[i] for i in ranked_indices[:3]]
+    print(f"Top 3 HMMs based on average log-likelihood: {ranked_scores}")
+    
     
     return ranked_hmms, ranked_scores
 
@@ -42,10 +47,10 @@ if __name__ == "__main__":
     # Load the data and the previously trained HMMs
     data_dir = '../data'
     drillbit_data = load_data(data_dir)
-    temporal_sequences = generate_sequences(drillbit_data[:10])  # Use the first 10 files as training set
+    temporal_sequences = generate_sequences(drillbit_data[:16])  # Use the first 10 files as training set
     
     # Load the trained HMMs from the results folder
-    hmms = load_hmms(output_dir='../results/models/')
+    hmms = load_hmms(output_dir='./results/models/')
     
     # Rank the HMMs based on their average log-likelihood over the training sequences
     top_hmms, top_scores = rank_hmms(hmms, temporal_sequences)

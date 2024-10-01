@@ -13,8 +13,8 @@ if __name__ == "__main__":
     # Step 2: Initialize and train 10 HMMs
     hmms = initialize_hmms(temporal_sequences, num_hmms=10, num_iterations=2)
     
-    # Step 3: Perform competitive learning
-    hmms = competitive_learning(temporal_sequences, hmms, max_epochs=10)
+     # Perform competitive learning, ensuring sequence length is at least 4
+    hmms, top_hmms, hmm_win_count = competitive_learning(temporal_sequences, hmms, max_epochs=20, min_sequence_length=4, tolerance=1e-4, max_refits=5)
 
 #     # After competitive learning is complete
 #     hmms, hmm_win_counts, hmm_sequence_dict = competitive_learning(
@@ -30,3 +30,7 @@ if __name__ == "__main__":
     
     # Step 4: Save trained HMMs
     save_hmms(hmms, output_dir='./results/models/')
+
+    # Step 5: Evaluate and select the top 3 HMMs
+    save_hmms(top_hmms, output_dir='./results/top_hmms/')
+    print("HMM training and selection completed.")

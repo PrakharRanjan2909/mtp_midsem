@@ -269,7 +269,7 @@ def initialize_hmms(temporal_sequences, num_hmms=10, num_iterations=2):
     return hmms
 
 # Function for competitive learning using HMMs with a stopping criterion
-def competitive_learning(temporal_sequences, hmms, max_epochs=10, min_sequence_length=4, tolerance=1e-4, max_refits=5):
+def competitive_learning(temporal_sequences, hmms, max_epochs=20, min_sequence_length=4, tolerance=1e-4, max_refits=5):
     """
     Perform competitive learning on the temporal sequences with the initialized HMMs.
     Each sequence is assigned to the HMM that maximizes the log-likelihood, and the
@@ -282,25 +282,33 @@ def competitive_learning(temporal_sequences, hmms, max_epochs=10, min_sequence_l
     refit_counts = [0] * len(temporal_sequences)  # Track how many times each sequence is refit
     
     dict = {}
+    hmm_win_count = {i: 0 for i in range(len(hmms))}  # Dictionary to store win counts for each HMM
     
     for epoch in range(max_epochs):
         print(f"Epoch {epoch + 1}/{max_epochs}")
         
         # Track total log-likelihood change to check for convergence
         total_log_likelihood_change = 0
+        #randomise the temporal sequences
+        random.shuffle(temporal_sequences)
+        random.shuffle(temporal_sequences)
         
         for idx, seq in enumerate(temporal_sequences):
+            
+
+
             seq = np.array(seq)  # Ensure the sequence is a numpy array
+
             
             # Skip sequences that are too short for the number of HMM states
             if len(seq) < min_sequence_length:
                 print(f"Skipping sequence of length {len(seq)} (too short for HMM with {min_sequence_length} states)")
                 continue
             
-            # Skip refitting if a sequence has been refit too many times
-            if refit_counts[idx] >= max_refits:
-                print(f"Skipping sequence {idx} as it has been refit {max_refits} times")
-                continue
+            # # Skip refitting if a sequence has been refit too many times
+            # if refit_counts[idx] >= max_refits:
+            #     print(f"Skipping sequence {idx} as it has been refit {max_refits} times")
+            #     continue
             
             best_hmm = None
             best_log_likelihood = float('-inf')
@@ -321,11 +329,27 @@ def competitive_learning(temporal_sequences, hmms, max_epochs=10, min_sequence_l
             old_params = best_hmm.transmat_.copy()
             
             # Update the winning HMM with the sequence
+            # Using EM algorithm to update the parameters
+            
+
+
+
             best_hmm.fit(seq, [len(seq)])  # Fit using the sequence and its length
             refit_counts[idx] += 1  # Increment refit counter for the sequence
             
             print(f"HMM {best_hmm_idx} won the sequence {idx}")
 
+
+            # Update the win count for the HMM
+            if best_hmm_idx in hmm_win_count:
+                hmm_win_count[best_hmm_idx] += 1
+            else:
+                hmm_win_count[best_hmm_idx] = 1
+            
+            for key in hmm_win_count:
+                print(f"HMM {key} win count: {hmm_win_count[key]}")
+
+            
             if best_hmm_idx in dict:
                 dict[best_hmm_idx] += 1
             else:
@@ -345,16 +369,24 @@ def competitive_learning(temporal_sequences, hmms, max_epochs=10, min_sequence_l
         
         print(f"Total log-likelihood change in epoch {epoch + 1}: {total_log_likelihood_change}")
         
-        # Early stopping criterion based on total log-likelihood change across the epoch
-        if total_log_likelihood_change < tolerance:
-            print(f"Convergence reached after {epoch + 1} epochs.")
-            break
+        # # Early stopping criterion based on total log-likelihood change across the epoch
+        # if total_log_likelihood_change < tolerance:
+        #     print(f"Convergence reached after {epoch + 1} epochs.")
+        #     break
+
+    # Sort HMMs based on the number of wins
+    top_hmms_idx = sorted(hmm_win_count, key=hmm_win_count.get, reverse=True)[:3]
+    top_hmms = [hmms[i] for i in top_hmms_idx]
     
-    return hmms
+    print(f"Top 3 HMMs based on win count: {top_hmms_idx}")
+    
+    return hmms, top_hmms, hmm_win_count
 
 if __name__ == "__main__":
     from preprocessing import load_data, generate_sequences
-    
+    # from utils import save_hmms
+
+
     data_dir = '../data'
     drillbit_data = load_data(data_dir)
     temporal_sequences = generate_sequences(drillbit_data)
@@ -363,6 +395,6 @@ if __name__ == "__main__":
     hmms = initialize_hmms(temporal_sequences, num_hmms=10, num_iterations=2)
     
     # Perform competitive learning, ensuring sequence length is at least 4
-    hmms = competitive_learning(temporal_sequences, hmms, max_epochs=10, min_sequence_length=4, tolerance=1e-4, max_refits=5)
+    hmms, top_hmms, hmm_win_count  = competitive_learning(temporal_sequences, hmms, max_epochs=20, min_sequence_length=4, tolerance=1e-4, max_refits=5)
     
     print("HMM training completed.")
