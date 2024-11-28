@@ -31,7 +31,7 @@ def map_hmms_to_health_states(hmm_wins):
     """
     # Assuming the progression from good -> mediocre -> bad based on sequence order
     n = len(hmm_wins)
-    third = n // 3
+    third = n // 5
     
     # Count the HMM wins in three sections (beginning -> middle -> end)
     good_section = hmm_wins[:third]
@@ -88,11 +88,11 @@ if __name__ == "__main__":
     hmms = load_hmms(output_dir='./results/top_hmms/')
     
     # Load the dataset (for example DB1.txt)
-    data_dir = '../data'
+    data_dir = 'C:\\Users\\Prakhar\\Desktop\\mtp\\final_implementation\\data'
     drillbit_data = load_data(data_dir)
     
     # Evaluate which HMM wins each sequence for the first drill bit (DB1.txt)
-    x = 6
+    x = 3
     sequences_db1 = generate_sequences([drillbit_data[x]])  # Assuming DB1.txt is the first file
     hmm_wins_db1 = evaluate_hmm_wins(hmms, sequences_db1)
     
