@@ -1,6 +1,40 @@
 import os
 import numpy as np
+
+
+
+import numpy as np
 import scipy.signal as signal
+
+def moving_average_filter(data, window_size=5):
+    """
+    Apply a moving average filter to smooth force and torque data.
+    
+    Parameters:
+        data (numpy array): Raw force/torque data.
+        window_size (int): Number of points for averaging.
+        
+    Returns:
+        numpy array: Smoothed data.
+    """
+    return np.convolve(data, np.ones(window_size)/window_size, mode='same')
+
+def load_data3(directory):
+    """
+    Load and preprocess drill bit data with filtering.
+    """
+    drillbit_data = []
+    for file in sorted(os.listdir(directory)):
+        file_path = os.path.join(directory, file)
+        data = np.loadtxt(file_path)
+        
+        # Apply filtering to force and torque separately
+        data[:, 0] = moving_average_filter(data[:, 0])  # Thrust Force
+        data[:, 1] = moving_average_filter(data[:, 1])  # Torque
+
+        drillbit_data.append(data)
+    
+    return drillbit_data
 
 
 def savitzky_golay_filter(data, window_size=5, poly_order=2):
@@ -16,6 +50,21 @@ def savitzky_golay_filter(data, window_size=5, poly_order=2):
         numpy array: Smoothed data.
     """
     return signal.savgol_filter(data, window_size, poly_order)
+
+def load_data2(directory):
+    drillbit_data = []
+    for file in sorted(os.listdir(directory)):
+        file_path = os.path.join(directory, file)
+        data = np.loadtxt(file_path)
+
+        # Apply filtering to force and torque separately
+        data[:, 0] = savitzky_golay_filter(data[:, 0])  # Thrust Force
+        data[:, 1] = savitzky_golay_filter(data[:, 1])  # Torque
+
+        drillbit_data.append(data)
+    
+    return drillbit_data
+
 
 # Function to load and preprocess all drillbit data
 def load_data(data_dir):

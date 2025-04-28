@@ -18,7 +18,7 @@ if __name__ == "__main__":
     hmms  = initialize_hmms_limited_sequences(temporal_sequences_2d_list, num_hmms=10, num_iterations=2)
     
      # Perform competitive learning, ensuring sequence length is at least 4
-    hmms, top_hmms, hmm_win_count = competitive_learning(temporal_sequences, hmms, max_epochs=1, min_sequence_length=4, tolerance=1e-4, max_refits=5)
+    hmms, top_hmms, hmm_win_count = competitive_learning(temporal_sequences, hmms, max_epochs=2, min_sequence_length=4, tolerance=1e-4, max_refits=5)
     
 
 #   

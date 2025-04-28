@@ -146,10 +146,11 @@ def estimate_rul_transition_matrix(hmms, current_state, health_state_mapping):
 
 
 if __name__ == "__main__":
-    new_data_file = '../data/DB12.txt'  # Example path to the new dataset
+    new_data_file = './data/DB7.txt'  # Example path to the new dataset
     
     # Load HMMs and health state mapping
-    hmms = load_hmms(output_dir='C:\\Users\\Prakhar\\Desktop\\mtp\\final_implementation\\results\\top_hmms')
+    
+    hmms = load_hmms(output_dir='./results/top_hmms/')
     health_state_mapping = {0: 'good', 1: 'mediocre', 2: 'bad'}  # Example mapping
 
     # Step 1: Preprocess the new dataset

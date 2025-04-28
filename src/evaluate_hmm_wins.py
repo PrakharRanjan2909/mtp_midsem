@@ -92,7 +92,7 @@ if __name__ == "__main__":
     drillbit_data = load_data(data_dir)
     
     # Evaluate which HMM wins each sequence for the first drill bit (DB1.txt)
-    x = 3
+    x = 7
     sequences_db1 = generate_sequences([drillbit_data[x]])  # Assuming DB1.txt is the first file
     hmm_wins_db1 = evaluate_hmm_wins(hmms, sequences_db1)
     
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     
     # Map the HMMs to health states (good, mediocre, bad) based on the winning pattern
     health_state_mapping = map_hmms_to_health_states(hmm_wins_db1)
-    print(f"HMM to health state mapping: {health_state_mapping}")
+    # print(f"HMM to health state mapping: {health_state_mapping}")
 
 
      # Compute log-likelihoods for each HMM over the sequences

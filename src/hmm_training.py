@@ -5,6 +5,76 @@ from kl_divergence_implementations import calculate_kl_divergence_matrix
 from preprocessing import generate_sequences_each_file
 
 
+def initialize_hmms_prior(temporal_sequences, num_hmms=10, num_iterations=2):
+    hmms = []
+    for _ in range(num_hmms):
+        model = hmm.GaussianHMM(n_components=4, covariance_type="diag", n_iter=num_iterations)
+
+        # Initialize transition matrix with constrained values
+        transmat_prior = np.array([
+            [0.7, 0.3, 0.0],  # Good → Good (70%), Good → Mediocre (30%), no direct Good → Bad
+            [0.1, 0.7, 0.2],  # Mediocre → Good (10%), Mediocre → Mediocre (70%), Mediocre → Bad (20%)
+            [0.0, 0.2, 0.8]   # Bad → Good (0%), Bad → Mediocre (20%), Bad → Bad (80%)
+        ])
+        model.transmat_ = transmat_prior
+        hmms.append(model)
+
+    return hmms
+
+def enforce_transition_constraints(hmm_model):
+    """
+    Enforce realistic transition constraints to prevent reverse jumps.
+    """
+    constrained_transmat = hmm_model.transmat_
+
+    # Set constraints to prevent reverse transitions
+    constrained_transmat[2, 0] = 0  # P(Bad → Good) = 0
+    constrained_transmat[2, 1] = max(constrained_transmat[2, 1] * 0.5, 0.01)  # Reduce P(B → M)
+    constrained_transmat[1, 0] = max(constrained_transmat[1, 0] * 0.5, 0.01)  # Reduce P(M → G)
+
+    # Normalize the matrix (so rows sum to 1)
+    constrained_transmat = constrained_transmat / constrained_transmat.sum(axis=1, keepdims=True)
+    
+    hmm_model.transmat_ = constrained_transmat
+    return hmm_model
+
+def initialize_hmms_with_failure(temporal_sequences, num_hmms=10, num_iterations=2):
+    hmms = []
+    for _ in range(num_hmms):
+        model = hmm.GaussianHMM(n_components=4, covariance_type="diag", n_iter=num_iterations)
+
+        # Modified transition matrix with Failure (F) state
+        transmat_prior = np.array([
+            [0.7, 0.3, 0.0, 0.0],  # Good → Good (70%), Good → Mediocre (30%)
+            [0.1, 0.7, 0.2, 0.0],  # Mediocre → Good (10%), Mediocre → Mediocre (70%)
+            [0.0, 0.2, 0.6, 0.2],  # Bad → Mediocre (20%), Bad → Bad (60%), Bad → Failure (20%)
+            [0, 0, 0, 1.0]  # Failure state absorbs everything
+        ])
+        model.transmat_ = transmat_prior
+        hmms.append(model)
+
+    return hmms
+
+
+def detect_abrupt_failures(hmms, sequence, threshold=-500):
+    """
+    Detects if a sequence is an abrupt failure by checking log-likelihood scores.
+    """
+    likelihoods = [hmm.score(sequence) for hmm in hmms]
+    best_score = max(likelihoods)
+
+    # If likelihood is too low, classify as Failure
+    if best_score < threshold:
+        return "Failure"
+    else:
+        return hmms[np.argmax(likelihoods)]  # Assign normal HMM classification
+
+
+
+
+
+
+
 
 # Function to initialize HMMs with random subsets
 def initialize_hmms(temporal_sequences, num_hmms=10, num_iterations=2):
