@@ -1,7 +1,7 @@
 import random
 import numpy as np
 from hmmlearn import hmm
-from kl_divergence_implementations import calculate_kl_divergence_matrix
+from kl_div import calculate_kl_divergence_matrix
 from preprocessing import generate_sequences_each_file
 
 
